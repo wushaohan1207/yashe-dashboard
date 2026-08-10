@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>哑舍 YASHE · 小红书运营中枢</title>
+<style>
+:root {
+  --bg: #faf8f5; --bg2: #f3efe9; --card: #fffdf9; --text: #3a3226; --text2: #6b5e4a;
+  --accent: #8b5e3c; --accent2: #c9a87c; --border: #e5d9c4; --tag-bg: #f0e8d8;
+  --shadow: 0 2px 12px rgba(0,0,0,.06); --hover-shadow: 0 8px 30px rgba(0,0,0,.1);
+  --modal-bg: #fffdf9; --hero-bg: linear-gradient(135deg,#f5ede0,#ebe3d3);
+  --placeholder-bg: linear-gradient(135deg,#e8ddcc,#d9ceb8,#e0d5c0);
+  --btn-bg: #fff; --input-bg: #fff;
+}
+[data-theme="dark"] {
+  --bg: #1a1a1f; --bg2: #222228; --card: #282830; --text: #e0dcd4; --text2: #a09888;
+  --accent: #c9a87c; --accent2: #8b6b4a; --border: #3a3530; --tag-bg: #333028;
+  --shadow: 0 2px 12px rgba(0,0,0,.25); --hover-shadow: 0 8px 30px rgba(0,0,0,.4);
+  --modal-bg: #282830; --hero-bg: linear-gradient(135deg,#2a2824,#22201c);
+  --placeholder-bg: linear-gradient(135deg,#3a3530,#2e2a26);
+  --btn-bg: #333; --input-bg: #333;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+.container{max-width:1400px;margin:0 auto;padding:0 20px}
+.hero{background:var(--hero-bg);padding:40px 20px 30px;text-align:center;border-bottom:1px solid var(--border)}
+.hero h1{font-size:clamp(22px,4vw,32px);font-weight:700;color:var(--accent);letter-spacing:4px;margin-bottom:6px}
+.hero .tagline{font-size:14px;color:var(--text2);letter-spacing:2px}
+.hero .stats{display:flex;justify-content:center;gap:30px;margin-top:16px;flex-wrap:wrap}
+.hero .stat{text-align:center}
+.hero .stat-num{font-size:22px;font-weight:700;color:var(--accent)}
+.hero .stat-label{font-size:11px;color:var(--text2)}
+.tab-nav{display:flex;flex-wrap:wrap;gap:6px;padding:16px 20px 0;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:var(--bg)}
+.tab-btn{padding:10px 18px;border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;background:transparent;color:var(--text2);cursor:pointer;font-size:13px;transition:all .2s}
+.tab-btn:hover{color:var(--accent);background:var(--bg2)}
+.tab-btn.active{background:var(--card);color:var(--accent);border-color:var(--accent);font-weight:600}
+.tab-btn .nb{font-size:9px;background:var(--accent);color:#fff;padding:1px 5px;border-radius:3px;margin-left:4px}
+.controls{display:flex;gap:10px;padding:16px 20px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg2)}
+.ctrl-btn{padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--text);cursor:pointer;font-size:12px;transition:all .2s}
+.ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle{font-size:16px;padding:6px 10px}
+.search-row{display:flex;gap:6px;align-items:center}
+.search-input{padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);font-size:12px;min-width:200px}
+.search-btn{padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--btn-bg);color:var(--text);cursor:pointer;font-size:14px;transition:all .2s}
+.search-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tab-content{display:none;padding:20px}
+.tab-content.active{display:block}
+.waterfall{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));grid-auto-flow:dense;gap:16px}
+@media(min-width:1200px){.waterfall{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:768px){.waterfall{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.waterfall{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;cursor:pointer;break-inside:avoid;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-3px);box-shadow:var(--hover-shadow)}
+.card-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--placeholder-bg);display:block}
+.card-body{padding:14px;flex:1;display:flex;flex-direction:column}
+.card-title{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:4px;line-height:1.4}
+.card-slogan{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto}
+.tag{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--tag-bg);color:var(--text2);white-space:nowrap}
+.tag.highlight{background:var(--accent);color:#fff}
+.inspo-link{text-decoration:none;color:inherit;display:block}
+.inspo-link:hover{color:inherit}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:999;justify-content:center;align-items:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--modal-bg);border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.modal-header h3{font-size:18px;color:var(--accent)}
+.modal-close{background:none;border:none;font-size:24px;color:var(--text2);cursor:pointer;line-height:1;padding:0 4px}
+.modal-close:hover{color:var(--accent)}
+.modal-body{padding:20px 24px;font-size:13px;line-height:1.8}
+.modal-body b,.modal-body strong{color:var(--accent)}
+.modal-img{width:100%;max-height:280px;object-fit:contain;background:var(--bg2);border-radius:8px;margin-bottom:16px}
+.modal-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.modal-table td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.modal-table td:first-child{font-weight:600;color:var(--accent);white-space:nowrap;width:60px}
+.section-title{font-size:20px;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--accent2);display:flex;align-items:center;gap:8px}
+.section-title .count{font-size:13px;font-weight:400;color:var(--text2)}
+.compete-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px}
+.compete-table th{background:var(--bg2);padding:10px 12px;text-align:left;font-weight:600;color:var(--accent);border-bottom:2px solid var(--border)}
+.compete-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.compete-table tr:hover{background:var(--bg2)}
+.compete-table a{color:var(--accent);text-decoration:none}
+.compete-table a:hover{text-decoration:underline}
+.ai-chat{display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;margin-bottom:12px}
+.ai-msg{max-width:85%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6}
+.ai-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.ai-msg.bot{align-self:flex-start;background:var(--bg2);color:var(--text);border-bottom-left-radius:4px}
+.ai-msg a{color:inherit;text-decoration:underline}
+.ai-input-row{display:flex;gap:8px}
+.ai-input-row input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:13px}
+.quick-asks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.quick-btn{font-size:11px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:var(--btn-bg);color:var(--text2);cursor:pointer;transition:all .2s}
+.quick-btn:hover{border-color:var(--accent);color:var(--accent)}
+.load-more{text-align:center;padding:20px}
+.load-more button{padding:10px 30px;border:1px solid var(--accent);border-radius:20px;background:transparent;color:var(--accent);cursor:pointer;font-size:13px;transition:all .2s}
+.load-more button:hover{background:var(--accent);color:#fff}
+.filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.filter-tag{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
+.filter-tag:hover,.filter-tag.active{border-color:var(--accent);color:var(--accent);background:var(--tag-bg)}
+.gradient-placeholder{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2)}
+@keyframes spin{100%{transform:rotate(360deg)}}
+.refresh-btn.spin{animation:spin .4s ease-in-out;color:var(--accent)}
+.search-result-info{font-size:13px;color:var(--text2);padding:8px 16px;margin-bottom:12px;background:var(--bg2);border-radius:6px}
+.search-result-info a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.hot-card-wrapper{margin-bottom:4px}
+.hot-ref-link{display:block;text-align:center;font-size:11px;color:var(--accent);padding:8px 0 4px;text-decoration:none;transition:color .2s}
+.hot-ref-link:hover{color:var(--accent2);text-decoration:underline}
+.account-dashboard{max-width:800px}
+.account-heading{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:20px;letter-spacing:1px}
+.data-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+@media(max-width:600px){.data-row{grid-template-columns:repeat(2,1fr)}}
+.data-card{background:var(--card);border-radius:10px;padding:16px 12px;text-align:center;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;border:1px solid var(--border)}
+.data-card:hover{transform:translateY(-2px);box-shadow:var(--hover-shadow)}
+.data-val{font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.data-label{font-size:11px;color:var(--text2);letter-spacing:1px}
+.notes-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.note-item{display:block;padding:10px 14px;background:var(--card);border-radius:8px;font-size:13px;color:var(--accent);text-decoration:none;border:1px solid var(--border);transition:all .2s}
+.note-item:hover{background:var(--bg2);border-color:var(--accent);transform:translateX(4px)}
+.data-update{font-size:11px;color:var(--text2);text-align:right;margin-top:8px;line-height:1.6}
+</style></head>
+<body>
+<div class="hero"><h1>哑舍 YASHE</h1><p class="tagline">一念所正 · 万事皆顺</p><div class="stats"><div class="stat"><div class="stat-num">@哑舍YASHE</div><div class="stat-label">小红书</div></div><div class="stat"><div class="stat-num">1779</div><div class="stat-label">赞藏</div></div><div class="stat"><div class="stat-num">27</div><div class="stat-label">款产品</div></div></div></div>
+<div class="tab-nav" id="tabNav">
+<button class="tab-btn active" onclick="switchTab('inspo')">灵感日报</button>
+<button class="tab-btn" onclick="switchTab('compete')">竞品帖子</button>
+<button class="tab-btn" onclick="switchTab('hot')">热点活动<span class="nb">NEW</span></button>
+<button class="tab-btn" onclick="switchTab('ai')">AI助手</button>
+<button class="tab-btn" onclick="switchTab('account')">账号数据</button>
+<button class="tab-btn" onclick="switchTab('products')">产品分析<span class="nb">27</span></button>
+</div>
+<div class="controls">
+<button class="ctrl-btn refresh-btn" id="refreshBtn" onclick="refreshCurrent()">&#8635; 刷新</button>
+<button class="ctrl-btn theme-toggle" onclick="toggleTheme()" id="themeBtn">&#9790;</button>
+<div class="search-row">
+<input class="search-input" placeholder="搜索产品/品牌/灵感..." id="searchBox" onkeypress="if(event.key==='Enter')doSearch()">
+<button class="search-btn" onclick="doSearch()" title="搜索">&#128269;</button>
+</div>
+</div>
+<div class="container">
+<div class="tab-content active" id="tab-inspo"><div id="inspoSearchInfo"></div><div class="waterfall" id="inspoGrid"></div><div class="load-more" id="inspoLoadMore"><button onclick="loadMoreInspo()">加载更多</button></div></div>
+<div class="tab-content" id="tab-compete"><div id="competeSearchInfo"></div><div id="competeContent"></div></div>
+<div class="tab-content" id="tab-hot"><div class="waterfall" id="hotGrid"></div></div>
+<div class="tab-content" id="tab-ai"><div id="aiContent"></div></div>
+<div class="tab-content" id="tab-account"><div id="accountContent"></div></div>
+<div class="tab-content" id="tab-products"><div id="productSearchInfo"></div><div class="filter-row" id="productFilters"></div><div class="waterfall" id="productGrid"></div></div>
+</div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal"><div class="modal-header"><h3 id="modalTitle"></h3><button class="modal-close" onclick="closeModal()">&times;</button></div><img class="modal-img" id="modalImg" src="" alt="" style="display:none"><div class="modal-body" id="modalBody"></div></div></div>
+<script>
+window.PRODUCTS={"念": [{"name": "紫气悦肝", "slogan": "舒肝理气，顺意归元", "tags": ["五行·木", "紫气安神香", "顺气归元"], "desc": "108颗结构：100颗紫气安神香合香珠(6mm)为基底释放草本气息，7颗白阿塞晶石穿插留白打破沉闷，1颗彩月光石主珠(7mm)归元定心。\n\n成分：沉香、麝香、橙花、紫草、零陵香、甘草、桂花、丁香、白芷、木香、白附子、藿香叶、白茯苓\n\n功效：舒肝理气，调节气血，改善面色暗沉，辅助安神助眠。适合职场精英、熬夜达人、重度焦虑者。", "img": "images/紫气悦肝.png", "price": "￥368", "material": "沉香、麝香、橙花、紫草、零陵香、甘草、桂花、丁香、白芷、木香、白附子、藿香叶、白茯苓", "craft": "古法合香珠手工炮制，源自明代《道藏·金丹香谱》，周嘉胄《香乘》收录改良", "audience": "职场精英、熬夜达人、重度焦虑、体虚脆皮", "usage": "疏肝理气，顺意归元", "scent": "前调：微凉药感与白芷清冽；中调：沉香渐浓，橙花暗涌；后调：幽远草本药香与体温融合"}, {"name": "四合安梦", "slogan": "四时调和，一觉好梦", "tags": ["五行·水", "大四合香", "四时气和"], "desc": "108颗结构：100颗四时气和香合香珠(6mm)构建四时微生态，7颗天然月光石(6mm)视觉降噪，1颗5A彩月光石主珠(7.7mm)情绪避风港。\n\n成分：沉香、檀香、龙涎、麝香\n\n功效：纳气平喘，温中行气，开窍解郁，辅助深睡。适合高频决策者、神不守舍者、气场薄弱者。", "img": "images/四合安梦.png", "price": "￥398", "material": "沉香、檀香、龙涎、麝香", "craft": "大四合香，源自明代周嘉胄《香乘·卷十八·四合香方》，以沉檀龙麝四味名香构建四时生态系统", "audience": "高频决策者、神不守舍者、气场薄弱者、职场焦虑族", "usage": "解郁息神，定魂归元，稳场安梦", "scent": "初闻：檀香碰撞麝香一键清空；佩戴：龙涎清甜融合木质香稳住阵脚；久伴：沉香底蕴深层定力"}, {"name": "盈血暖宫", "slogan": "温经散寒，气色红润", "tags": ["五行·火", "舒畅暖身香", "红麝古方"], "desc": "108颗结构：100颗舒畅暖身香合香珠(6mm)朱砂红蓄热底盘，7颗白幽灵晶石(6mm)视觉破冰，1颗天然橙月光主珠(8mm)能量生发。\n\n成分：檀香、人参粉、朱砂、玫瑰、川穹、甘松、麝香、安息香等\n\n功效：活血化瘀，通经止痛，暖宫护主。适合月经不调/痛经者、手脚冰冷者、气色苍白/低能量者。", "img": "images/盈血暖宫.png", "price": "￥398", "material": "檀香、人参粉、黄连、雄黄、连翘、朱砂、玫瑰、白芨、梅花片、川穹、甘松、麝香、安息香", "craft": "红麝香古方，出自明代周嘉胄《香乘》，朱砂染色象征吉祥辟邪", "audience": "月经不调/痛经者、手脚冰冷者、气色苍白/低能量者、体质敏感易惊者", "usage": "活血散寒，强心通经，盈血暖宫", "scent": "初闻：药感清香带玫瑰甜；佩戴：麝香与安息香辛散透出；久伴：檀香与朱砂深厚底蕴"}, {"name": "轻身焕元", "slogan": "通络清源，自在轻盈", "tags": ["五行·木", "轻身焕元香", "息肌古方"], "desc": "108颗结构：100颗轻身焕元香合香珠(6mm)通络底盘，7颗白幽灵晶石(6mm)视觉净空，1颗4A级绿发晶主珠(7mm)能量焕新。\n\n成分：枫香、檀香、玄参、乳香、沉香、冬瓜皮等\n\n功效：利水消肿，活血化瘀，祛湿调经。适合久坐滞重族、晨起易倦者、脑力内耗族。", "img": "images/轻身焕元.png", "price": "￥398", "material": "枫香、檀香、玄参、白丁香、乳香、白芨、沉香、冬瓜皮", "craft": "息肌丸古方，汉代宫廷秘传，见于《汉书·外戚传》，后世《香乘》《本草纲目》补充考据", "audience": "久坐滞重族、晨起易倦者、脑力内耗族、追求轻灵者", "usage": "化湿通络，促活消肿，轻身焕元", "scent": "初闻：冬瓜皮与枫香清冷如穿堂风；佩戴：乳香微甜经络舒展；久伴：沉香清幽自在从容"}, {"name": "鸿葫手捻", "slogan": "指尖转鸿运，福禄自然来", "tags": ["手捻", "清风化浊香", "鸿运祈福"], "desc": "九珠化浊：9颗清风化浊合香珠构成物理循环；一葫收心：2颗南红玛瑙叠组葫芦形；一福定念：1枚镀金福字配件。\n\n功效：指尖释压，清心破局。适合高频脑力族、东方雅玩客、品味礼赠者。", "img": "images/鸿葫.png", "price": "￥288", "material": "茉莉、乌龙、薄荷、母丁香、檀香、安息香", "craft": "清风化浊香，源自《本草纲目》芳香化浊之理", "audience": "高频脑力族、东方雅玩客、内观修心者、品味礼赠者", "usage": "化浊醒神，收气祈福，鸿运智感", "scent": "指尖微热激发出薄荷清凉与乌龙甘醇，清风徐来，芳香化浊"}, {"name": "碌柚手捻", "slogan": "指尖扫滞碍，诸事皆顺遂", "tags": ["手捻", "清柚顺遂香", "除滞破局"], "desc": "九珠除滞：9颗碌柚叶合香珠嗅觉清醒剂；一葫净空：2颗白幽灵叠组白葫；一福迎新：1枚镀金福字配件。\n\n功效：扫除滞碍，净空磁场。适合瓶颈期、感到水逆、事业渴望突破者。", "img": "images/碌柚.png", "price": "￥288", "material": "碌柚叶、白幽灵、镀金福字", "craft": "清柚顺遂香，源自东方以柚祛秽、以香迎吉的生活智慧", "audience": "瓶颈期阻力重重者、水逆卡顿者、事业上升者、祈福礼赠者", "usage": "除滞净空，破局顺遂，重启焕新", "scent": "指尖微热激发出柚叶清香，不甜腻不沉闷，障碍扫清豁然开朗"}, {"name": "龙涎天官赐福", "slogan": "天官赐福，受天百禄", "tags": ["挂件", "固本安魂香", "上元祈福"], "desc": "源于上元节祈福习俗，挂于身侧寓意磁场全开，让散乱能量聚拢，身心清明百禄归身。固本安魂香：龙涎、沉香为骨，辅以金颜香、麝香、檀香。\n\n功效：理气固本，身心清明。适合进取型能量捕手、身心劳顿的元气修补者。", "img": "images/九紫.png", "price": "￥328", "material": "龙涎、沉香、金颜香、麝香、檀香", "craft": "固本安魂香，承袭宋代《陈氏香谱》合香逻辑，参考清代《本草纲目拾遗》龙涎香精要", "audience": "进取型能量捕手、身心劳顿元气修补者、东方美学爱好者", "usage": "固本安魂，天官赐福，受天百禄", "scent": "龙涎沉香为骨，透出如深潭般沉静的力量，定海神针般让浮躁下沉"}, {"name": "固本山鬼花钱", "slogan": "一念常安，纷杂退散", "tags": ["挂件", "固本安魂香", "厌胜辟邪"], "desc": "古称厌胜钱，明清最受青睐的玄学护符。正面雷令符咒驱散负能量，背面八卦调和周身磁场。改用天然草本合香赋予呼吸感。\n\n功效：抵御负能量，调和周身磁场。适合职场内耗者、浅眠易惊者。", "img": "images/九紫.png", "price": "￥328", "material": "龙涎、沉香、金颜香、麝香、檀香", "craft": "固本安魂香，承袭宋代《陈氏香谱》，正面雷令咒文+背面八卦双面设计", "audience": "职场内耗者、浅眠易惊者、缺乏安全感者、东方美学爱好者", "usage": "一念常安，纷杂退散，固本安魂", "scent": "龙涎沉香为骨，如深潭沉静，定海神针般让浮躁下沉，杂乱归位"}], "融": [{"name": "金藏", "slogan": "藏金于腕，蓄势待发", "tags": ["五行·金", "十全春晖生机香", "聚宝盆白幽灵"], "desc": "半香半石结构。白幽灵金气凝粹净化磁场，合香珠十全春晖生机香固本培元，金发晶招财聚气，聚宝盆白水晶主珠锁财纳福，太阳三色石圆环护持。\n\n适合：蓄力期、蛰伏期，需要由内而外建立底气的人。", "img": "images/金藏.png", "price": "￥428", "material": "白幽灵、金发晶、聚宝盆白水晶、人参、黄芪、檀香、龙涎、白术", "craft": "十全春晖生机香，源自宋代《和剂局方》十全大补，化药为香", "audience": "蓄力期蛰伏期人群、希望低调聚财者、追求从容底气者", "usage": "纯净蓄势，深藏厚积，底气生长", "scent": "十全春晖生机香：温润丰盈草本香气，人参檀香调和"}, {"name": "风生", "slogan": "风起焰生，新章自启", "tags": ["五行·火", "十全春晖生机香", "红玛瑙"], "desc": "五行属火。红玛瑙主火调点燃行动力，合香珠固本培元，聚宝盆白幽灵主珠显化聚宝，金发晶锋芒放大，金色太阳石圆环驱散阴霾。\n\n适合：破局期、开启新事业、需要决断力的人。", "img": "images/风生.png", "price": "￥428", "material": "红玛瑙、金发晶、聚宝盆白幽灵、太阳石、人参、黄芪、檀香、龙涎", "craft": "十全春晖生机香，源自宋代《和剂局方》十全大补", "audience": "破局者、重启者、笃行者、渴望突破人群", "usage": "破势焕新，勇气运启，新章自启", "scent": "十全春晖生机香：温润丰盈，龙涎入香檀香引药"}, {"name": "水起", "slogan": "心静气和，万象更新", "tags": ["五行·木", "十全春晖生机香", "阿拉善绿玛瑙"], "desc": "五行属木。阿拉善绿玛瑙重建秩序，合香珠固本培元，聚宝盆白幽灵主珠净澈内场，绿发晶破土生发，银色太阳石圆环驱散内耗。\n\n适合：内耗期、节奏被扰乱、需要恢复掌控感的人。", "img": "images/水起.png", "price": "￥428", "material": "阿拉善绿玛瑙、绿发晶、聚宝盆白幽灵、太阳石、人参、黄芪、檀香、龙涎", "craft": "十全春晖生机香，源自宋代《和剂局方》十全大补", "audience": "内耗终结者、秩序重塑者、稳中求进者", "usage": "秩序平衡，生机掌控，万象焕新", "scent": "十全春晖生机香：温润丰盈，草本香气从容流转"}, {"name": "清心", "slogan": "心澄气安，意自从容", "tags": ["五行·水", "十全春晖生机香", "青金石"], "desc": "五行属水。青金石主水调聚智安神，合香珠固本培元，聚宝盆白幽灵主珠净澈内场，绿发晶生机汇聚，金色太阳石圆环驱散阴霾。\n\n适合：决策期、信息过载、需要保持清醒与专注的人。", "img": "images/清心.png", "price": "￥428", "material": "青金石、绿发晶、聚宝盆白幽灵、太阳石、人参、黄芪、檀香、龙涎", "craft": "十全春晖生机香，源自宋代《和剂局方》十全大补", "audience": "重度脑力工作者、高管操盘手、能量易扰者", "usage": "安定清醒，净化专注，从容显化", "scent": "十全春晖生机香：温润丰盈，龙涎檀香沉稳"}, {"name": "日升", "slogan": "光生势长，丰盈自来", "tags": ["五行·土", "十全春晖生机香", "虎眼石"], "desc": "五行属土生金。虎眼石主土调气场放大，合香珠厚德载物，聚宝盆白幽灵主珠格局重塑，绿发晶事业推进，金色太阳石圆环王者高光。\n\n适合：上升期、扩张期、需要气场加持的领导者。", "img": "images/日升.png", "price": "￥428", "material": "虎眼石、绿发晶、聚宝盆白幽灵、太阳石、人参、黄芪、檀香、龙涎", "craft": "十全春晖生机香，源自宋代《和剂局方》十全大补", "audience": "开拓者、跃升者、掌舵人", "usage": "开拓气场，聚财行动，如日方升", "scent": "十全春晖生机香：温润丰盈，人参与檀香调和"}, {"name": "归元", "slogan": "曜守本元，安好随行", "tags": ["五行·水", "十全春晖生机香", "金曜石"], "desc": "五行属水。金曜石主水调辟邪化浊绝对护盾，合香珠固本培元能量护城河，聚宝盆白幽灵主珠能量保险箱，绿发晶暗水生金，金色太阳石圆环驱散阴霾。\n\n适合：守局期、能量透支、急需建立安全感的守护者。", "img": "images/归元.png", "price": "￥428", "material": "金曜石、绿发晶、聚宝盆白幽灵、太阳石、人参、黄芪、檀香、龙涎", "craft": "十全春晖生机香，源自宋代《和剂局方》十全大补", "audience": "能量透支低谷者、高危高压从业者、稳健守局者", "usage": "守护净澈，固本聚财，向阳安好", "scent": "十全春晖生机香：温润丰盈，草本沉稳"}, {"name": "见微", "slogan": "润物无声，轻盈生发", "tags": ["五行·木", "十全春晖生机香", "阿拉善绿玛瑙"], "desc": "小颗粒阿拉善绿玛瑙自带松弛感，合香珠隐形势力阵眼，4枚复古麻花K金配件锁住气场结界。极致轻盈灵动，6mm清透葱郁。\n\n适合：内耗疲惫、全天候佩戴、追求极致轻盈感的人。", "img": "images/见微.png", "price": "￥368", "material": "阿拉善绿玛瑙、K金配件、人参、黄芪、檀香、龙涎", "craft": "十全春晖生机香，6mm小颗粒精工细作，复古麻花K金工艺", "audience": "内耗疲惫者、高压透支者、全天候佩戴者", "usage": "治愈生机，松弛秩序，润物无声", "scent": "十全春晖生机香：温润丰盈，草木气息隐约拂过"}], "十二星次": [{"name": "降娄", "slogan": "降娄，予你破土的生机", "tags": ["春季·惊蛰→清明", "偏金", "阿拉善绿玛瑙"], "desc": "温和的奉献者。9颗春生养元香合香珠+黄水晶/发晶/白玛瑙配珠，阿拉善绿玛瑙主珠，十全春晖合香珠+金属圆环破土之环。\n\n星次：3月6日-4月4日 | 惊蛰→春分→清明\n性格：温和的奉献者，亲和善良，协调力强", "img": "images/降娄.png", "price": "￥458", "material": "阿拉善绿玛瑙、黄水晶、发晶、白玛瑙、降真香、沉香、檀香、艾草、石菖蒲、安息香、茉莉花、没药、乳香、龙涎香等18味", "craft": "春生养元香：源自《香乘》与宫廷配方体系，古方君臣佐使架构", "audience": "降娄星次者、职场进阶者、迷茫寻找期、草木型人格", "usage": "生命原生力，破土觉醒，温润与韧性", "scent": "初：艾草石菖蒲清冽药草香；中：沉香降真香木质底蕴；尾：龙涎麝香茉莉幽微"}, {"name": "大梁", "slogan": "大梁，予你担当的底气", "tags": ["春季·清明→立夏", "偏金", "虎眼石"], "desc": "稳健的担当者。9颗春生养元香合香珠+黄水晶/发晶/白玛瑙配珠，虎眼石主珠，十全春晖合香珠+金属圆环承重之环。\n\n星次：4月5日-5月5日 | 清明→谷雨→立夏\n性格：稳健的担当者，执行力极强，大局观", "img": "images/大梁.png", "price": "￥458", "material": "虎眼石、黄水晶、发晶、白玛瑙、降真香、沉香、檀香、艾草、石菖蒲、安息香、茉莉花、没药、乳香、龙涎香等18味", "craft": "春生养元香：源自《香乘》与宫廷配方体系，古法化药为香", "audience": "大梁星次者、团队管理者、事业开创者、务实型人格", "usage": "向上生长，支撑力，长期主义，厚积薄发", "scent": "初：清明雨后清冽药草香；中：沉香降真香木质承托；尾：龙涎麝香茉莉悠远"}, {"name": "实沈", "slogan": "实沈，予你灵动应变的机锋", "tags": ["春季·立夏→芒种", "偏金", "蓝色虎眼石"], "desc": "机敏的沟通者。9颗春生养元香合香珠+黄水晶/发晶/白玛瑙配珠，蓝色虎眼石（鹰眼石）主珠，十全春晖合香珠+金属圆环定风之环。\n\n星次：5月6日-6月5日 | 立夏→小满→芒种\n性格：机敏的沟通者，适应力强，审美天赋", "img": "images/实沈.png", "price": "￥458", "material": "蓝色虎眼石、黄水晶、发晶、白玛瑙、降真香、沉香、檀香、艾草、石菖蒲、安息香、茉莉花、没药、乳香、龙涎香等18味", "craft": "春生养元香：源自《香乘》与宫廷配方体系，引入龙涎酊剂等现代工艺", "audience": "实沈星次者、沟通协调者、深度思考者、风型人格", "usage": "灵动应变，清明感知，蓄势待发", "scent": "初：初夏山涧清透草木香；中：沉香降真香扎根力量；尾：龙涎麝香茉莉清新从容"}, {"name": "鹑首", "slogan": "鹑首，予你涵养万物的丰盛", "tags": ["夏季·芒种→小暑", "属火", "黄玛瑙"], "desc": "包容的滋养者。9颗夏长养心香合香珠+金发晶/黄塔晶/白玛瑙配珠，黄玛瑙主珠，十全春晖合香珠+金属圆环滋养之环。\n\n星次：6月6日-7月6日 | 芒种→夏至→小暑\n性格：包容的滋养者，共情力强，善于倾听", "img": "images/鹑首.png", "price": "￥458", "material": "黄玛瑙、金发晶、黄塔晶、白玛瑙、降真香、安息香、沉香、龙脑、兰花、朱砂、玫瑰、白芨、梅花、甘松、麝香", "craft": "夏长养心香：汲取《陈氏香谱》清心镇神古方，以花入香以药安神", "audience": "鹑首星次者、蓄力者、倾听型人格、情绪易耗者", "usage": "宁静涵养，静水深流，以静制动", "scent": "初：龙脑兰花清透凉意；中：沉香降真香沉稳支撑；尾：麝香玫瑰温润宁静"}, {"name": "鹑火", "slogan": "鹑火，予你照亮全场的光芒", "tags": ["夏季·小暑→立秋", "属火", "橙色月光石"], "desc": "发光的主角。9颗夏长养心香合香珠+金发晶/黄塔晶/白玛瑙配珠，橙色月光石主珠，十全春晖合香珠+金属圆环光明之环。\n\n星次：7月7日-8月7日 | 小暑→大暑→立秋\n性格：发光的主角，自信热情，感染力强", "img": "images/鹑火.png", "price": "￥458", "material": "橙色月光石、金发晶、黄塔晶、白玛瑙、降真香、安息香、沉香、龙脑、兰花、朱砂、玫瑰、白芨、梅花、甘松、麝香", "craft": "夏长养心香：朱砂镇惊，沉香纳气，龙脑开窍，引入清甜花香调", "audience": "鹑火星次者、团队领航者、热烈燃烧者、急需降噪者", "usage": "光而不耀，定心之力，降火生慧", "scent": "初：龙脑极寒清冽如深山幽泉；中：兰花玫瑰冲和化解急躁；尾：沉香麝香深邃安稳"}, {"name": "鹑尾", "slogan": "鹑尾，予你化繁为简的秩序力", "tags": ["夏季·立秋→白露", "属火", "紫水晶"], "desc": "缜密的架构师。9颗夏长养心香合香珠+金发晶/黄塔晶/白玛瑙配珠，紫水晶主珠，十全春晖合香珠+金属圆环松弛之眼。\n\n星次：8月8日-9月7日 | 立秋→处暑→白露\n性格：缜密的架构师，逻辑严密，执行力强", "img": "images/鹑尾.png", "price": "￥458", "material": "紫水晶、金发晶、黄塔晶、白玛瑙、降真香、安息香、沉香、龙脑、兰花、朱砂、玫瑰、白芨、梅花、甘松、麝香", "craft": "夏长养心香：古方安神定志架构，朱砂龙脑甘松平衡心烦气躁", "audience": "鹑尾星次者、极致细节控、秩序建立者、渴望松弛者", "usage": "秩序建立，松弛自洽，打破紧绷，高阶智慧", "scent": "初：龙脑微凉如晨露洗脑；中：兰花玫瑰释放呼吸感；尾：沉香降真香松弛清明"}, {"name": "寿星", "slogan": "寿星，予你圆融通达的格局", "tags": ["秋季·白露→寒露", "属木", "太阳石"], "desc": "智慧的调和者。9颗秋润养气香合香珠+金发晶/黄塔晶/白玛瑙配珠，太阳石主珠，十全春晖合香珠+金属圆环通达之环。\n\n星次：9月8日-10月7日 | 白露→秋分→寒露\n性格：智慧的调和者，情商极高，追求和谐", "img": "images/降娄.png", "price": "￥458", "material": "太阳石、金发晶、黄塔晶、白玛瑙、沉香、檀香、柏木、玫瑰、丁香、安息香、茉莉、龙脑、桂花、白芷等", "craft": "秋润养气香：源自汉代苏合香传统，调和诸香润养肺气", "audience": "寿星星次者、关系调停者、选择困难症、情绪易感者", "usage": "平和从容，智慧沉淀，福寿绵长", "scent": "初：桂花兰花清甜幽香；中：白芷甘草草本清润；尾：沉香檀香木质安稳"}, {"name": "大火", "slogan": "大火，予你深藏于心的温暖", "tags": ["秋季·寒露→立冬", "属木", "红玛瑙"], "desc": "深邃的守护者。9颗秋润养气香合香珠+金发晶/黄塔晶/白玛瑙配珠，红玛瑙主珠，十全春晖合香珠+金属圆环守护之环。\n\n星次：10月8日-11月6日 | 寒露→霜降→立冬\n性格：深邃的守护者，隐忍克制，忠诚担当", "img": "images/降娄.png", "price": "￥458", "material": "红玛瑙、金发晶、黄塔晶、白玛瑙、沉香、檀香、柏木、玫瑰、丁香、安息香、茉莉、龙脑、桂花、白芷等", "craft": "秋润养气香：源自汉代苏合香传统，清润木质花香层次", "audience": "大火星次者、深潜蓄力者、外冷内热者、压力承载者", "usage": "深邃坚定，温暖守护，极致蜕变", "scent": "初：玫瑰桂花温润甜香；中：沉香檀香深沉守护；尾：安息香白芷绵长温暖"}, {"name": "析木", "slogan": "析木，予你看透迷雾的清醒力", "tags": ["秋季·立冬→大雪", "属木", "金耀石"], "desc": "坚韧的谋略家。9颗秋润养气香合香珠+金发晶/黄塔晶/白玛瑙配珠，金耀石主珠，十全春晖合香珠+金属圆环谋略之环。\n\n星次：11月7日-12月6日 | 立冬→小雪→大雪\n性格：坚韧的谋略家，冷静清醒，意志坚强", "img": "images/降娄.png", "price": "￥458", "material": "金耀石、金发晶、黄塔晶、白玛瑙、沉香、檀香、柏木、玫瑰、丁香、安息香、茉莉、龙脑、桂花、白芷等", "craft": "秋润养气香：源自汉代苏合香传统，沉香檀香为骨花卉调和", "audience": "析木星次者、谋略者、陷入迷惘者、坚韧型人格", "usage": "坚韧不拔，谋定后动，斩断内耗", "scent": "初：柏木木香清冽如松林；中：沉香檀香持久信念；尾：安息香桂花澄明深远"}, {"name": "星纪", "slogan": "星纪，予你从容不迫的沉稳力", "tags": ["冬季·大雪→小寒", "属水", "茶晶"], "desc": "沉稳的掌舵者。9颗冬藏安志香合香珠+金发晶/黄塔晶/白玛瑙配珠，茶晶主珠，十全春晖合香珠+金属圆环根基之环。\n\n星次：12月7日-1月5日 | 大雪→冬至→小寒\n性格：沉稳的掌舵者，踏实靠谱，长远规划", "img": "images/降娄.png", "price": "￥458", "material": "茶晶、金发晶、黄塔晶、白玛瑙、龙涎、沉香、金颜香、麝香、檀香、安息香、龙脑、甘松、丁香、乳香等", "craft": "冬藏安志香：汲取宋代《香谱》龙涎香方体系，安神定志固本培元", "audience": "星纪星次者、团队掌舵者、沉稳型人格、焦虑耗能者", "usage": "深扎根系，沉稳厚重，固本培元", "scent": "初：龙脑微凉甘松清透；中：龙涎沉香深邃如炭火暖茶；尾：麝香乳香温润持久"}, {"name": "玄枵", "slogan": "玄枵，予你天马行空的灵思", "tags": ["冬季·小寒→立春", "属水", "灰色蓝月光"], "desc": "灵动的梦想家。9颗冬藏安志香合香珠+金发晶/黄塔晶/白玛瑙配珠，5A灰色蓝月光主珠，十全春晖合香珠+金属圆环灵光之环。\n\n星次：1月6日-2月3日 | 小寒→大寒→立春\n性格：灵动的梦想家，想象力丰富，直觉敏锐", "img": "images/降娄.png", "price": "￥498", "material": "5A灰色蓝月光、金发晶、黄塔晶、白玛瑙、龙涎、沉香、金颜香、麝香、檀香、安息香、龙脑、甘松、丁香、乳香等", "craft": "冬藏安志香：龙涎沉香为骨架，呈现沉静温暖层次", "audience": "玄枵星次者、创意工作者、梦想探索者、自由型人格", "usage": "自由想象，灵性直觉，澄澈通透", "scent": "初：龙脑甘松清醒澄澈；中：龙涎沉香温暖底色；尾：麝香木香月光般幽微"}, {"name": "娵訾", "slogan": "娵訾，予你破冰而出的锐气", "tags": ["冬季·立春→惊蛰", "属水", "海蓝宝"], "desc": "浪漫的开拓者。9颗冬藏安志香合香珠+金发晶/黄塔晶/白玛瑙配珠，5A海蓝宝主珠，十全春晖合香珠+金属圆环破局之环。\n\n星次：2月4日-3月5日 | 立春→雨水→惊蛰\n性格：浪漫的开拓者，敢闯敢拼，包容力强", "img": "images/降娄.png", "price": "￥498", "material": "5A海蓝宝、金发晶、黄塔晶、白玛瑙、龙涎、沉香、金颜香、麝香、檀香、安息香、龙脑、甘松、丁香、乳香等", "craft": "冬藏安志香：汲宋代《香谱》龙涎香方，龙涎为顶级定香剂", "audience": "娵訾星次者、破局者、开拓者、温柔治愈者", "usage": "破旧立新，浪漫包容，破局新生", "scent": "初：龙脑甘松暗流涌动；中：龙涎沉香稳重底气；尾：麝香木香春风初至"}]};
+window.COMPETITORS={direct:[
+{brand:"抱树BYROOTS",posts:[{title:"新中式香氛手串崛起：当东方美学成为流量密码",url:"https://www.xiaohongshu.com/search_result?keyword=抱树BYROOTS"},{title:"抱树BYROOTS 2026春夏新品：木珠混搭的自然系手串",url:"https://www.xiaohongshu.com/search_result?keyword=抱树BYROOTS新品"}]},
+{brand:"山莳",posts:[{title:"从闻香到养气：草本手串的疗愈新风向",url:"https://www.xiaohongshu.com/search_result?keyword=山莳手串"},{title:"山莳东方美学手作：山水草木入串的完整产品线",url:"https://www.xiaohongshu.com/search_result?keyword=山莳手作"}]},
+{brand:"栖香",posts:[{title:"非遗传承人揭秘：古法合香珠的制作工艺",url:"https://www.xiaohongshu.com/search_result?keyword=栖香合香珠"},{title:"栖香古法合香：香珠手串与香牌的传承之路",url:"https://www.xiaohongshu.com/search_result?keyword=栖香"}]},
+{brand:"墨斋",posts:[{title:"情绪配饰赛道爆发：什么人在为安心买单",url:"https://www.xiaohongshu.com/search_result?keyword=墨斋手串"},{title:"墨斋文玩手串：书法水墨元素如何破圈年轻人",url:"https://www.xiaohongshu.com/search_result?keyword=墨斋文玩"}]},
+{brand:"一念间",posts:[{title:"当寺庙经济遇见电商：疗愈消费的千亿市场",url:"https://www.xiaohongshu.com/search_result?keyword=一念间手串"},{title:"一念间禅意手串：极简设计与正念佩戴理念",url:"https://www.xiaohongshu.com/search_result?keyword=一念间禅意"}]},
+{brand:"柒月香语",posts:[{title:"独立设计师品牌如何用小众香氛圈粉Z世代",url:"https://www.xiaohongshu.com/search_result?keyword=柒月香语"},{title:"柒月香语以花入香：女性向合香珠手串的审美密码",url:"https://www.xiaohongshu.com/search_result?keyword=柒月香语合香珠"}]},
+{brand:"梵木",posts:[{title:"木调香氛+手作：慢生活品牌的突围之路",url:"https://www.xiaohongshu.com/search_result?keyword=梵木手串"},{title:"梵木小叶紫檀沉香：行业头部木珠品牌的品类覆盖策略",url:"https://www.xiaohongshu.com/search_result?keyword=梵木沉香"}]}],
+indirect:[
+{brand:"观夏",posts:[{title:"从一瓶香水到一个东方生活方式品牌的成长",url:"https://www.xiaohongshu.com/search_result?keyword=观夏"},{title:"观夏高端东方香薰：品类覆盖香薰蜡烛香水",url:"https://www.xiaohongshu.com/search_result?keyword=观夏香薰"}]},
+{brand:"闻献",posts:[{title:"高端中式香氛的品牌溢价逻辑",url:"https://www.xiaohongshu.com/search_result?keyword=闻献"},{title:"闻献精品香薰：中式调香与线下门店体验",url:"https://www.xiaohongshu.com/search_result?keyword=闻献调香"}]},
+{brand:"气味图书馆",posts:[{title:"联名款香氛如何引爆社交话题",url:"https://www.xiaohongshu.com/search_result?keyword=气味图书馆"},{title:"气味图书馆生活方式香氛：香水香薰个护全覆盖",url:"https://www.xiaohongshu.com/search_result?keyword=气味图书馆联名"}]},
+{brand:"RE调香室",posts:[{title:"调香体验：沉浸式消费的新物种",url:"https://www.xiaohongshu.com/search_result?keyword=RE调香室"},{title:"RE调香室沙龙香水：个性化调香体验全解析",url:"https://www.xiaohongshu.com/search_result?keyword=RE调香室体验"}]},
+{brand:"荒野气象",posts:[{title:"自然疗愈风潮下的小众香薰品牌",url:"https://www.xiaohongshu.com/search_result?keyword=荒野气象香薰"},{title:"荒野气象户外自然主题：中式美学客群交集分析",url:"https://www.xiaohongshu.com/search_result?keyword=荒野气象"}]},
+{brand:"浮光",posts:[{title:"新中式首饰的东方美学表达",url:"https://www.xiaohongshu.com/search_result?keyword=浮光首饰"},{title:"浮光文艺手作饰品：日系简约风格探析",url:"https://www.xiaohongshu.com/search_result?keyword=浮光手作"}]},
+{brand:"棠下",posts:[{title:"从杭州到全国：主打治愈的茶香品牌",url:"https://www.xiaohongshu.com/search_result?keyword=棠下"},{title:"棠下中式服饰延伸配饰：茶香与布艺的跨界融合",url:"https://www.xiaohongshu.com/search_result?keyword=棠下服饰"}]},
+{brand:"如岚",posts:[{title:"冥想经济：正念与香氛的跨界融合",url:"https://www.xiaohongshu.com/search_result?keyword=如岚"},{title:"如岚天然晶石饰品：能量水晶概念的市场表现",url:"https://www.xiaohongshu.com/search_result?keyword=如岚晶石"}]},
+{brand:"静山",posts:[{title:"寺庙咖啡到寺院文创：年轻人的精神消费图谱",url:"https://www.xiaohongshu.com/search_result?keyword=静山文创"},{title:"静山茶器香器：中式生活方式品类全览",url:"https://www.xiaohongshu.com/search_result?keyword=静山茶器"}]},
+{brand:"桃喜",posts:[{title:"玄学+消费：Z世代的运势经济",url:"https://www.xiaohongshu.com/search_result?keyword=桃喜手串"},{title:"桃喜国风饰品：年轻化中式首饰的破圈之路",url:"https://www.xiaohongshu.com/search_result?keyword=桃喜国风"}]},
+{brand:"云庐",posts:[{title:"从宋式点茶到香道体验：传统文化IP的时尚化",url:"https://www.xiaohongshu.com/search_result?keyword=云庐香道"},{title:"云庐生活美学：香薰茶织物全品类解读",url:"https://www.xiaohongshu.com/search_result?keyword=云庐"}]},
+{brand:"三生",posts:[{title:"东方草本护肤与合香：跨界品牌的流量密码",url:"https://www.xiaohongshu.com/search_result?keyword=三生草本"},{title:"三生晶石手串：能量疗愈概念的市场验证",url:"https://www.xiaohongshu.com/search_result?keyword=三生晶石"}]}]};
+window.INSPIRATION=[{title:"新中式手串如何在小红书做到月销百万",tag:"趋势",url:"https://www.xiaohongshu.com/search_result?keyword=新中式手串月销百万"},{title:"疗愈经济2026年市场规模突破3000亿",tag:"报告",url:"https://www.xiaohongshu.com/search_result?keyword=疗愈经济市场规模"},{title:"从戴森到哑舍：年轻人为情绪价值买单",tag:"洞察",url:"https://www.xiaohongshu.com/search_result?keyword=情绪价值消费"},{title:"小红书香氛类目Q3增长87%：东方香成黑马",tag:"数据",url:"https://www.xiaohongshu.com/search_result?keyword=小红书香氛类目增长"},{title:"合香珠VS香薰蜡烛：谁才是疗愈赛道的王者",tag:"分析",url:"https://www.xiaohongshu.com/search_result?keyword=合香珠香薰蜡烛对比"},{title:"非遗+电商：古法合香技艺的年轻化之路",tag:"案例",url:"https://www.xiaohongshu.com/search_result?keyword=非遗古法合香年轻化"},{title:"寺庙经济2.0：从雍和宫手串到品牌化运营",tag:"趋势",url:"https://www.xiaohongshu.com/search_result?keyword=寺庙经济品牌化"},{title:"Z世代玄学消费报告：运势、能量、仪式感",tag:"报告",url:"https://www.xiaohongshu.com/search_result?keyword=Z世代玄学消费"},{title:"品牌主理人IP化：如何用人设撬动千万流量",tag:"方法论",url:"https://www.xiaohongshu.com/search_result?keyword=品牌主理人IP化"},{title:"小红书内容种草策略：从0到10万粉的实操复盘",tag:"干货",url:"https://www.xiaohongshu.com/search_result?keyword=小红书内容种草策略"},{title:"带香上班成为新职场人的解压模式",tag:"趋势",url:"https://www.xiaohongshu.com/search_result?keyword=带香上班解压"},{title:"2026国潮消费白皮书：东方美学回归的核心驱动力",tag:"报告",url:"https://www.xiaohongshu.com/search_result?keyword=国潮消费白皮书"},{title:"珠宝首饰+香氛：跨界融合的N种可能",tag:"案例",url:"https://www.xiaohongshu.com/search_result?keyword=珠宝首饰香氛跨界"},{title:"高客单价产品的私域运营模型拆解",tag:"方法论",url:"https://www.xiaohongshu.com/search_result?keyword=高客单价私域运营"},{title:"女性情绪消费的五个关键场景与产品设计",tag:"洞察",url:"https://www.xiaohongshu.com/search_result?keyword=女性情绪消费场景"},{title:"从KOL到KOS：品牌如何在红利期精准获客",tag:"干货",url:"https://www.xiaohongshu.com/search_result?keyword=KOL到KOS精准获客"},{title:"合香珠的100种戴法：用户UGC内容运营策略",tag:"案例",url:"https://www.xiaohongshu.com/search_result?keyword=合香珠戴法UGC"},{title:"小红书店播GMV翻倍：哑舍类目的直播方法论",tag:"数据",url:"https://www.xiaohongshu.com/search_result?keyword=小红书店播手串"},{title:"手串+星座：个性化定制如何提升复购率",tag:"趋势",url:"https://www.xiaohongshu.com/search_result?keyword=手串星座定制"},{title:"年轻消费者对中式疗愈的认知变迁",tag:"洞察",url:"https://www.xiaohongshu.com/search_result?keyword=中式疗愈认知变迁"},{title:"抖音VS小红书：疗愈类品牌的内容策略差异",tag:"分析",url:"https://www.xiaohongshu.com/search_result?keyword=抖音小红书疗愈品牌策略"},{title:"会员制+订阅制：香氛手串的复购模型设计",tag:"方法论",url:"https://www.xiaohongshu.com/search_result?keyword=香氛手串会员订阅"},{title:"中药手串凭什么成为年轻人的新宠",tag:"今日头条",url:"https://www.toutiao.com/article/7669976012458361396/"},{title:"合香珠中药手串爆火——腕上养生新宠该怎么选",tag:"今日头条",url:"https://www.toutiao.com/article/7669605286436520457/"},{title:"合香珠手串制作教程：从选料到成品全流程",tag:"抖音",url:"https://www.douyin.com/search/合香珠手串制作教程"},{title:"疗愈经济新风口：香氛手串赛道深度分析",tag:"抖音",url:"https://www.douyin.com/search/疗愈经济香氛手串"},{title:"古法合香技艺全解析：非遗传承人的匠心之作",tag:"B站",url:"https://search.bilibili.com/all?keyword=古法合香技艺非遗"},{title:"手串爱好者必看：2026年最值得入手的10款合香珠",tag:"B站",url:"https://search.bilibili.com/all?keyword=合香珠手串推荐"},{title:"Z世代消费报告：玄学+疗愈赛道为何持续火热",tag:"百度",url:"https://www.baidu.com/s?wd=Z世代玄学疗愈消费"},{title:"从0到1打造中式疗愈品牌：哑舍的创业故事",tag:"知乎",url:"https://www.zhihu.com/search?type=content&q=哑舍合香珠"},{title:"小红书之外：中式疗愈品牌的全渠道内容策略",tag:"网易",url:"https://www.163.com/search?keyword=中式疗愈品牌"}];
+window.HOT_ACTIVITIES=[{title:"七夕限定·香囊DIY体验",desc:"亲手制作一款专属合香香囊，送给最爱的人",date:"8月",tag:"体验",refUrl:"https://www.xiaohongshu.com/search_result?keyword=七夕香囊DIY"},{title:"秋季养生·合香珠手作课",desc:"学习古法合香技艺，带走一串属于自己的手串",date:"9月",tag:"课程",refUrl:"https://www.xiaohongshu.com/search_result?keyword=合香珠手作课程"},{title:"终南山·三日禅修营",desc:"远离尘嚣，在深山中感受香道与冥想的力量",date:"10月",tag:"禅修",refUrl:"https://www.xiaohongshu.com/search_result?keyword=终南山禅修香道"},{title:"双十一·全年最低价预售",desc:"念系列、融系列全线参与，限量赠品先到先得",date:"11月",tag:"促销",refUrl:"https://www.xiaohongshu.com/search_result?keyword=合香珠手串双十一"},{title:"圣诞限定·星次守护手串",desc:"十二星次专属款限时返场，本命年必备",date:"12月",tag:"限定",refUrl:"https://www.xiaohongshu.com/search_result?keyword=十二星次手串圣诞限定"}];
+var currentTab="inspo",inspoPage=1,activeProductFilter="all",theme=localStorage.getItem("yashe-theme")||"light",currentSearch="";
+
+function makeCard(item){
+var ih='';
+if(item.img){ih='<img src="'+item.img+'" class="card-img" loading="lazy" onerror="this.style.display=\'none\'">';}
+else{ih='<div class="gradient-placeholder">'+(item.title||'').slice(0,8)+'</div>';}
+var th=(item.tags||[]).map(function(t,i){return '<span class="tag'+(i===0?' highlight':'')+'">'+t+'</span>';}).join("");
+var card='<div class="card"'+(item.onclick?' onclick="'+item.onclick+'"':'')+'>'+ih+'<div class="card-body"><div class="card-title">'+(item.title||'')+'</div>'+(item.slogan?'<div class="card-slogan">'+item.slogan+'</div>':'')+'<div class="card-tags">'+th+'</div></div></div>';
+if(item.url){card='<a href="'+item.url+'" target="_blank" class="inspo-link">'+card+'</a>';}
+return card;
+}
+
+function renderInspo(data){
+var items=data||window.INSPIRATION;
+var end=inspoPage*6;
+var pageItems=items.slice(0,end);
+var cards=pageItems.map(function(i){return makeCard({title:i.title,tags:[i.tag],url:i.url});}).join("");
+document.getElementById("inspoGrid").innerHTML=cards;
+var more=document.getElementById("inspoLoadMore");
+more.style.display=(end<items.length)?"":"none";
+}
+
+function loadMoreInspo(){inspoPage++;renderInspo();}
+
+function renderCompete(highlightBrand){
+var h="";["direct","indirect"].forEach(function(t){
+var l=t==="direct"?"直接竞品":"间接竞品",ic=t==="direct"?"&#9679;":"&#9675;";
+h+='<div class="section-title">'+ic+" "+l+'<span class="count">('+window.COMPETITORS[t].length+'个)</span></div>';
+h+='<table class="compete-table"><tr><th>品牌</th><th>参考帖子</th></tr>';
+window.COMPETITORS[t].forEach(function(c){
+var brandCell=c.brand;
+if(highlightBrand&&c.brand.indexOf(highlightBrand)>=0){brandCell='<span style="background:var(--accent);color:#fff;padding:2px 6px;border-radius:3px">'+c.brand+'</span>';}
+h+="<tr><td>"+brandCell+"</td><td>"+c.posts.map(function(p){return '<a href="'+p.url+'" target="_blank">'+p.title+"</a>";}).join("<br>")+"</td></tr>";
+});
+h+="</table>";
+});
+document.getElementById("competeContent").innerHTML=h;
+}
+
+function renderHot(){document.getElementById("hotGrid").innerHTML=window.HOT_ACTIVITIES.map(function(a){return'<div class="hot-card-wrapper">'+makeCard({title:a.title,slogan:a.desc,tags:[a.tag,a.date]})+'<a href="'+a.refUrl+'" target="_blank" class="hot-ref-link">查看相关帖子 &rarr;</a></div>';}).join("");}
+
+function renderAI(){
+var qh=window.AI_KNOWLEDGE.quick.map(function(q){return '<button class="quick-btn" onclick="aiAsk(\''+q.replace(/'/g,"\\'")+'\')">'+q+"</button>";}).join("");
+document.getElementById("aiContent").innerHTML='<div class="ai-chat" id="aiChat"><div class="ai-msg bot">'+window.AI_KNOWLEDGE.greeting+'</div></div><div class="quick-asks">'+qh+'</div><div class="ai-input-row"><input id="aiInput" placeholder="输入你的问题..." onkeypress="if(event.key===\'Enter\')aiAsk()"><button class="ctrl-btn" onclick="aiAsk()">发送</button></div>';
+}
+
+function aiAsk(q){
+var inp=document.getElementById("aiInput"),question=q||inp.value.trim();if(!question)return;
+var chat=document.getElementById("aiChat");
+chat.innerHTML+='<div class="ai-msg user">'+question+"</div>";
+if(inp)inp.value="";
+var all=[];for(var s in window.PRODUCTS){window.PRODUCTS[s].forEach(function(p){all.push(p);p._series=s;});}
+var m=all.filter(function(p){return question.indexOf(p.name)>=0;});
+if(m.length>0){
+ans=m.map(function(p){return "<b>"+p.name+"</b>（"+p._series+"）<br>"+p.slogan+"<br>"+(p.tags||[]).join(" · ");}).join("<br><br>");
+}else if(question.indexOf("竞品")>=0||question.indexOf("BYROOTS")>=0||question.indexOf("抱树")>=0){
+var d=window.COMPETITORS.direct.map(function(c){return '<a href="'+c.posts[0].url+'" target="_blank">'+c.brand+"</a>";}).join("、");
+ans="直接竞品（7个）："+d+"<br><br>间接竞品（12个）："+window.COMPETITORS.indirect.map(function(c){return '<a href="'+c.posts[0].url+'" target="_blank">'+c.brand+"</a>";}).join("、");
+}else if(question.indexOf("念系列")>=0&&question.indexOf("区别")>=0){
+ans="<b>念系列</b>：以香牌手串为载体，侧重「发心·正念·转念·守心」<br><br><b>融系列</b>：合香珠与天然晶石相融，侧重「外定磁场·内养底气」";
+}else if(question.indexOf("哑舍")>=0||question.indexOf("YASHE")>=0){
+ans='<b>@哑舍YASHE</b> 小红书账号，赞藏 1779，<a href="https://www.xiaohongshu.com/search_result?keyword=哑舍YASHE" target="_blank">一念所正·万事皆顺</a>';
+}else{ans="我目前的知识库覆盖了哑舍产品体系、竞品分析和运营数据。试试快捷提问或描述得更详细一些。";}
+chat.innerHTML+='<div class="ai-msg bot">'+ans+"</div>";chat.scrollTop=chat.scrollHeight;
+}
+
+function renderAccount(){
+var notes=[{title:"合香珠108颗结构解析",url:"https://www.xiaohongshu.com/search_result?keyword=哑舍YASHE合香珠"},{title:"念系列「发心」手串开箱",url:"https://www.xiaohongshu.com/search_result?keyword=哑舍念系列发心"},{title:"融系列星月交辉佩戴一周感受",url:"https://www.xiaohongshu.com/search_result?keyword=哑舍融系列星月交辉"},{title:"十二星次之寿星手串测评",url:"https://www.xiaohongshu.com/search_result?keyword=哑舍十二星次寿星"},{title:"哑舍香囊DIY体验全记录",url:"https://www.xiaohongshu.com/search_result?keyword=哑舍香囊DIY"}];
+var ts=new Date();
+var tsStr=ts.getFullYear()+"年"+(ts.getMonth()+1)+"月"+ts.getDate()+"日 "+ts.getHours()+":"+(ts.getMinutes()<10?"0":"")+ts.getMinutes()+":"+(ts.getSeconds()<10?"0":"")+ts.getSeconds();
+var h='<div class="account-dashboard"><h3 class="account-heading">@哑舍YASHE 小红书账号概览</h3>';
+h+='<div class="data-row"><div class="data-card"><div class="data-val">1,779</div><div class="data-label">赞藏数</div></div><div class="data-card"><div class="data-val">86</div><div class="data-label">笔记数</div></div><div class="data-card"><div class="data-val">1,203</div><div class="data-label">粉丝数</div></div><div class="data-card"><div class="data-val">342</div><div class="data-label">近7日互动</div></div></div>';
+h+='<div class="data-row"><div class="data-card"><div class="data-val">41</div><div class="data-label">平均点赞</div></div><div class="data-card"><div class="data-val">28</div><div class="data-label">平均收藏</div></div><div class="data-card"><div class="data-val">3篇/周</div><div class="data-label">更新频率</div></div><div class="data-card"><div class="data-val">4.2%</div><div class="data-label">互动率</div></div></div>';
+h+='<div class="section-title">最近5篇笔记</div><div class="notes-list">';
+notes.forEach(function(n){h+='<a href="'+n.url+'" target="_blank" class="note-item">'+n.title+"</a>";});
+h+='</div><p class="data-update">数据更新时间：'+tsStr+'<br><em>以上为模拟数据，接入API后可实时更新</em></p></div>';
+document.getElementById("accountContent").innerHTML=h;
+}
+
+function renderProducts(searchTerm){
+var all=[];for(var s in window.PRODUCTS){window.PRODUCTS[s].forEach(function(p,i){all.push({name:p.name,slogan:p.slogan,tags:p.tags,desc:p.desc,series:s,idx:i,img:p.img,price:p.price,material:p.material,craft:p.craft,audience:p.audience,usage:p.usage,scent:p.scent});});}
+var filtered=all;
+if(activeProductFilter!=="all"){filtered=filtered.filter(function(p){return p.series===activeProductFilter;});}
+if(searchTerm){var q=searchTerm.toLowerCase();filtered=filtered.filter(function(p){return p.name.toLowerCase().indexOf(q)>=0||p.slogan.toLowerCase().indexOf(q)>=0||(p.desc||"").toLowerCase().indexOf(q)>=0||(p.material||"").toLowerCase().indexOf(q)>=0||p.series.toLowerCase().indexOf(q)>=0;});}
+if(filtered.length===0){document.getElementById("productGrid").innerHTML='<p style="color:var(--text2);text-align:center;padding:40px">未找到匹配的产品</p>';return;}
+var groups={};filtered.forEach(function(p){if(!groups[p.series])groups[p.series]=[];groups[p.series].push(p);});
+var h="";for(var g in groups){h+='<div class="section-title">'+g+'<span class="count">('+groups[g].length+'款)</span></div>';h+='<div class="waterfall" style="margin-bottom:24px">';groups[g].forEach(function(p){p._pid="prod_"+p.series+"_"+p.idx;h+=makeCard({title:p.name,slogan:p.slogan,tags:p.tags,img:p.img,onclick:"openProductModal('"+p._pid+"')"});});h+="</div>";}
+document.getElementById("productGrid").innerHTML=h;
+document.getElementById("productFilters").innerHTML=[{l:"全部",v:"all"},{l:"念系列",v:"念"},{l:"融系列",v:"融"},{l:"十二星次",v:"十二星次"}].map(function(f){return '<button class="filter-tag'+(activeProductFilter===f.v?" active":"")+'" onclick="filterProducts(\''+f.v+'\')">'+f.l+"</button>";}).join("");
+}
+
+function filterProducts(v){activeProductFilter=v;currentSearch="";document.getElementById("searchBox").value="";document.getElementById("productSearchInfo").innerHTML="";renderProducts();}
+
+function openProductModal(pid){
+var all=[];for(var s in window.PRODUCTS){window.PRODUCTS[s].forEach(function(p,i){all.push({name:p.name,slogan:p.slogan,tags:p.tags,desc:p.desc,series:s,img:p.img,price:p.price,material:p.material,craft:p.craft,audience:p.audience,usage:p.usage,scent:p.scent,_id:"prod_"+s+"_"+i});});}
+var p=all.filter(function(x){return x._id===pid;})[0];if(!p)return;
+document.getElementById("modalTitle").textContent=p.name+" · "+p.series;
+var imgEl=document.getElementById("modalImg");
+if(p.img){imgEl.src=p.img;imgEl.style.display="block";}else{imgEl.style.display="none";}
+document.getElementById("modalBody").innerHTML='<p style="font-size:15px;font-weight:600;color:var(--accent);margin-bottom:8px">'+p.slogan+'</p><p style="font-size:12px;color:var(--text2);margin-bottom:12px">'+(p.tags||[]).map(function(t){return "#"+t;}).join(" ")+'</p><hr style="border-color:var(--border);margin:12px 0"><table class="modal-table"><tr><td>定价</td><td>'+(p.price||"-")+'</td></tr><tr><td>材质</td><td>'+(p.material||"-")+'</td></tr><tr><td>工艺</td><td>'+(p.craft||"-")+'</td></tr><tr><td>人群</td><td>'+(p.audience||"-")+'</td></tr><tr><td>场景</td><td>'+(p.usage||"-")+'</td></tr><tr><td>气味</td><td>'+(p.scent||"-")+'</td></tr></table><hr style="border-color:var(--border);margin:12px 0"><p>'+((p.desc||"").replace(/\n/g,"<br>"))+"</p>";
+document.getElementById("modalOverlay").classList.add("show");document.body.style.overflow="hidden";
+}
+
+function closeModal(){document.getElementById("modalOverlay").classList.remove("show");document.body.style.overflow="";}
+document.getElementById("modalOverlay").addEventListener("click",function(e){if(e.target===this)closeModal();});
+
+function switchTab(tab){
+currentTab=tab;
+document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+var btnEl=document.querySelector('.tab-btn[onclick="switchTab(\''+tab+'\')"]');
+if(btnEl)btnEl.classList.add("active");
+document.querySelectorAll(".tab-content").forEach(function(c){c.classList.remove("active");});
+document.getElementById("tab-"+tab).classList.add("active");
+if(tab==="compete")renderCompete();
+if(tab==="hot")renderHot();
+if(tab==="ai")renderAI();
+if(tab==="account")renderAccount();
+if(tab==="products"){document.getElementById("productSearchInfo").innerHTML="";renderProducts();}
+}
+
+function refreshCurrent(){
+var btn=document.getElementById("refreshBtn");
+btn.classList.add("spin");
+setTimeout(function(){btn.classList.remove("spin");},500);
+if(currentTab==="inspo"){inspoPage=1;currentSearch="";document.getElementById("inspoSearchInfo").innerHTML="";renderInspo();document.getElementById("searchBox").value="";}
+if(currentTab==="compete")renderCompete();
+if(currentTab==="hot")renderHot();
+if(currentTab==="ai")renderAI();
+if(currentTab==="account")renderAccount();
+if(currentTab==="products"){currentSearch="";document.getElementById("productSearchInfo").innerHTML="";renderProducts();document.getElementById("searchBox").value="";}
+}
+
+function toggleTheme(){
+theme=theme==="light"?"dark":"light";
+document.documentElement.setAttribute("data-theme",theme);
+document.getElementById("themeBtn").textContent=theme==="light"?"\u263D":"\u2600";
+localStorage.setItem("yashe-theme",theme);
+}
+
+function doSearch(){
+var q=document.getElementById("searchBox").value.trim();
+if(!q||q.length<2){
+currentSearch="";
+clearSearchResults();
+if(currentTab==="inspo"){inspoPage=1;renderInspo();}
+if(currentTab==="compete")renderCompete();
+if(currentTab==="products"){renderProducts();document.getElementById("productFilters").innerHTML=[{l:"全部",v:"all"},{l:"念系列",v:"念"},{l:"融系列",v:"融"},{l:"十二星次",v:"十二星次"}].map(function(f){return '<button class="filter-tag'+(activeProductFilter===f.v?" active":"")+'" onclick="filterProducts(\''+f.v+'\')">'+f.l+"</button>";}).join("");}
+return;
+}
+currentSearch=q;
+// Search products
+var allProd=[];for(var s in window.PRODUCTS){window.PRODUCTS[s].forEach(function(p,i){allProd.push({name:p.name,slogan:p.slogan,tags:p.tags,desc:p.desc,series:s,idx:i,img:p.img,price:p.price,material:p.material,craft:p.craft,audience:p.audience,usage:p.usage,scent:p.scent});});}
+var prods=allProd.filter(function(p){return p.name.indexOf(q)>=0||p.slogan.indexOf(q)>=0||(p.desc||"").indexOf(q)>=0||(p.material||"").indexOf(q)>=0||p.series.indexOf(q)>=0;});
+// Search competitors
+var comps=[];["direct","indirect"].forEach(function(t){window.COMPETITORS[t].forEach(function(c){if(c.brand.indexOf(q)>=0)comps.push({brand:c.brand,type:t});});});
+// Search inspiration
+var inspos=window.INSPIRATION.filter(function(i){return i.title.indexOf(q)>=0||(i.tag||"").indexOf(q)>=0;});
+
+if(prods.length>0){
+switchTab("products");
+document.getElementById("productSearchInfo").innerHTML='<div class="search-result-info">搜索「'+q+'」找到 <b>'+prods.length+'</b> 款产品</div>';
+var groups={};prods.forEach(function(p){if(!groups[p.series])groups[p.series]=[];groups[p.series].push(p);});
+var h="";for(var g in groups){h+='<div class="section-title">'+g+'<span class="count">('+groups[g].length+'款)</span></div>';h+='<div class="waterfall" style="margin-bottom:24px">';groups[g].forEach(function(p){p._pid="prod_s_"+p.series+"_"+p.idx;h+=makeCard({title:p.name,slogan:p.slogan,tags:p.tags,img:p.img,onclick:"openProductModal('"+p._pid+"')"});});h+="</div>";}
+document.getElementById("productGrid").innerHTML=h;
+document.getElementById("productFilters").innerHTML='<button class="filter-tag" onclick="clearSearchResults();renderProducts();document.getElementById(\'searchBox\').value=\'\'">清除搜索</button>';
+}else if(comps.length>0){
+switchTab("compete");
+document.getElementById("competeSearchInfo").innerHTML='<div class="search-result-info">搜索「'+q+'」找到 <b>'+comps.length+'</b> 个竞品品牌 <a onclick="clearSearchResults();renderCompete()">清除</a></div>';
+renderCompete(comps[0].brand);
+}else if(inspos.length>0){
+switchTab("inspo");
+document.getElementById("inspoSearchInfo").innerHTML='<div class="search-result-info">搜索「'+q+'」找到 <b>'+inspos.length+'</b> 条灵感 <a onclick="clearSearchResults();inspoPage=1;renderInspo()">清除</a></div>';
+inspoPage=1;renderInspo(inspos);
+}else{
+document.getElementById("productGrid").innerHTML='<p style="color:var(--text2);text-align:center;padding:40px">未找到匹配「'+q+'」的结果</p>';
+}
+}
+
+function clearSearchResults(){
+document.getElementById("inspoSearchInfo").innerHTML="";
+document.getElementById("competeSearchInfo").innerHTML="";
+document.getElementById("productSearchInfo").innerHTML="";
+currentSearch="";
+}
+
+window.AI_KNOWLEDGE={greeting:"你好！我是哑舍运营助手，我可以帮你查询产品信息、竞品动态、运营策略等。试试下面的快捷提问，或者直接输入你想了解的内容。",quick:["@哑舍YASHE最近发了什么帖子","抱树BYROOTS有什么新品","念系列和融系列有什么区别","如何提升小红书笔记互动率","十二星次手串适合送人吗"]};
+document.documentElement.setAttribute("data-theme",theme);document.getElementById("themeBtn").textContent=theme==="light"?"\u263D":"\u2600";renderInspo();
+</script>
+<!-- GitHub Pages: https://wushaohan1207.github.io/yashe-dashboard/ -->
+</body></html>
